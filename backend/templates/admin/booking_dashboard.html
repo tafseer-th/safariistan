@@ -1,0 +1,61 @@
+<style>
+  .sf-dash { margin: 0 0 24px; }
+  .sf-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  .sf-card { display: block; padding: 16px 18px; border-radius: 10px; border: 1px solid var(--hairline-color);
+             background: var(--body-bg); text-decoration: none !important; border-left-width: 5px; }
+  .sf-card:hover { background: var(--darkened-bg); }
+  .sf-card .n { font-size: 30px; font-weight: 700; line-height: 1.1; color: var(--body-fg); }
+  .sf-card .l { margin-top: 4px; font-size: 13px; color: var(--body-quiet-color); }
+  .sf-blue { border-left-color: #2563eb; } .sf-amber { border-left-color: #d97706; }
+  .sf-green { border-left-color: #16a34a; } .sf-gray { border-left-color: #6b7280; }
+  .sf-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .sf-chip { padding: 4px 10px; border-radius: 999px; background: var(--darkened-bg); font-size: 12px; }
+  .sf-dash table { width: 100%; margin-top: 14px; }
+  .sf-pending { color: #d97706; font-weight: 600; }
+</style>
+
+<div class="sf-dash">
+  <h2 style="margin-bottom:12px">Bookings overview</h2>
+
+  <div class="sf-cards">
+    {% for c in cards %}
+      <a class="sf-card sf-{{ c.tone }}" href="{{ c.link }}">
+        <div class="n">{{ c.value }}</div>
+        <div class="l">{{ c.label }}</div>
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if by_type %}
+    <div class="sf-row">
+      <strong style="font-size:12px;align-self:center">Pending by type:</strong>
+      {% for t in by_type %}
+        <a class="sf-chip" href="{{ t.link }}">{{ t.label }}: {{ t.count }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="module" style="margin-top:16px">
+    <table>
+      <caption>Latest pending requests <a href="{{ all_url }}?status__exact=pending" style="float:right;font-weight:normal">View all</a></caption>
+      {% if latest %}
+        <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Type</th><th>Item</th><th>Travel date</th><th>Received</th></tr></thead>
+        <tbody>
+          {% for b in latest %}
+            <tr>
+              <td><a href="{% url 'admin:bookings_booking_change' b.id %}">#{{ b.id }}</a></td>
+              <td>{{ b.name }}</td>
+              <td>{{ b.phone }}</td>
+              <td>{{ b.get_booking_type_display }}</td>
+              <td>{{ b.item_name|default:"-" }}</td>
+              <td>{{ b.travel_date|default:"-" }}</td>
+              <td>{{ b.created_at|timesince }} ago</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      {% else %}
+        <tbody><tr><td>No pending requests. All caught up!</td></tr></tbody>
+      {% endif %}
+    </table>
+  </div>
+</div>
