@@ -1,0 +1,46 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency: deploy-production
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.workflow_run.head_sha || github.sha }}" }
+
+      - name: Configure SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sync code
+        run: |
+          rsync -az --delete -e "ssh -i ~/.ssh/id_deploy" \
+            --exclude .git --exclude .github --exclude node_modules --exclude .next \
+            --exclude .env --exclude venv --exclude db.sqlite3 --exclude media \
+            ./ "root@${{ secrets.DEPLOY_HOST }}:/opt/safaristan/"
+
+      - name: Build and restart
+        run: |
+          ssh -i ~/.ssh/id_deploy "root@${{ secrets.DEPLOY_HOST }}" \
+            "cd /opt/safaristan && docker compose up -d --build --remove-orphans && docker image prune -f"
+
+      - name: Health check
+        run: |
+          for i in 1 2 3 4 5 6; do
+            ssh -i ~/.ssh/id_deploy "root@${{ secrets.DEPLOY_HOST }}" \
+              "curl -fsS http://127.0.0.1:3110/ >/dev/null && curl -fsS http://127.0.0.1:8120/api/destinations/ >/dev/null" && exit 0
+            sleep 10
+          done
+          exit 1

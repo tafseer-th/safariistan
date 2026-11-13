@@ -12,5 +12,5 @@ urlpatterns = [
     path("api/", include("bookings.urls")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Media is served by Django (nginx proxies /media/) so admin uploads work without extra setup.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

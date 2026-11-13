@@ -1,0 +1,36 @@
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      SQLITE_PATH: /data/db.sqlite3
+      MEDIA_ROOT: /data/media
+    volumes:
+      - safaristan_data:/data
+    ports:
+      - "127.0.0.1:8120:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_BASE_URL}
+        NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:-}
+        NEXT_PUBLIC_PHONE_NUMBER: ${NEXT_PUBLIC_PHONE_NUMBER:-}
+        NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
+        NEXT_PUBLIC_OFFICE_ADDRESS: ${NEXT_PUBLIC_OFFICE_ADDRESS:-}
+        NEXT_PUBLIC_FACEBOOK_URL: ${NEXT_PUBLIC_FACEBOOK_URL:-}
+        NEXT_PUBLIC_INSTAGRAM_URL: ${NEXT_PUBLIC_INSTAGRAM_URL:-}
+        NEXT_PUBLIC_YOUTUBE_URL: ${NEXT_PUBLIC_YOUTUBE_URL:-}
+        NEXT_PUBLIC_TIKTOK_URL: ${NEXT_PUBLIC_TIKTOK_URL:-}
+    restart: unless-stopped
+    environment:
+      INTERNAL_API_URL: http://backend:8000
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:3110:3000"
+
+volumes:
+  safaristan_data:

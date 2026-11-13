@@ -6,9 +6,16 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")  # secrets live in backend/.env, not in code
 
-SECRET_KEY = "dev-only-safaristan-change-this-before-deploy"
-DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+def _csv(name, default=""):
+    return [x.strip() for x in os.getenv(name, default).split(",") if x.strip()]
+
+
+DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-safaristan-change-this-before-deploy")
+if not DEBUG and SECRET_KEY.startswith("dev-only"):
+    raise RuntimeError("Set DJANGO_SECRET_KEY when DJANGO_DEBUG=0")
+ALLOWED_HOSTS = _csv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+CSRF_TRUSTED_ORIGINS = _csv("DJANGO_CSRF_TRUSTED_ORIGINS")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -28,8 +35,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "tourapp.middleware.InternalRequestPublicHostMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -60,7 +69,7 @@ WSGI_APPLICATION = "tourapp.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": os.getenv("SQLITE_PATH", str(BASE_DIR / "db.sqlite3")),
     }
 }
 
@@ -77,8 +86,13 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(BASE_DIR / "media"))
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -93,10 +107,15 @@ REST_FRAMEWORK = {
     },
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS = _csv(
+    "DJANGO_CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+)
+
+if not DEBUG:  # behind nginx terminating TLS
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = False  # nginx handles the redirect
+    SESSION_COOKIE_SECURE = os.getenv("DJANGO_HTTPS", "1") == "1"
+    CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
 
 # ---------- Email (new booking alerts) ----------
 # Fill these in backend/.env. Without a password, emails are only printed in the

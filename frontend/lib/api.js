@@ -1,5 +1,11 @@
-export const API_URL =
+const PUBLIC_API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8001";
+
+// Server-side rendering talks to the backend container directly; browsers use the public URL.
+export const API_URL =
+  typeof window === "undefined" && process.env.INTERNAL_API_URL
+    ? process.env.INTERNAL_API_URL
+    : PUBLIC_API_URL;
 
 // Contact numbers come from frontend/.env.local (restart `npm run dev` after changing it).
 // WhatsApp: country code + number, no "+" and no spaces, e.g. 923001234567
