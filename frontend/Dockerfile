@@ -1,0 +1,25 @@
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_WHATSAPP_NUMBER
+ARG NEXT_PUBLIC_PHONE_NUMBER
+ARG NEXT_PUBLIC_CONTACT_EMAIL
+ARG NEXT_PUBLIC_OFFICE_ADDRESS
+ARG NEXT_PUBLIC_FACEBOOK_URL
+ARG NEXT_PUBLIC_INSTAGRAM_URL
+ARG NEXT_PUBLIC_YOUTUBE_URL
+ARG NEXT_PUBLIC_TIKTOK_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+EXPOSE 3000
+CMD ["node", "server.js"]
