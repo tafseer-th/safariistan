@@ -40,7 +40,7 @@ jobs:
         run: |
           for i in 1 2 3 4 5 6; do
             ssh -i ~/.ssh/id_deploy "root@${{ secrets.DEPLOY_HOST }}" \
-              "curl -fsS http://127.0.0.1:3110/ >/dev/null && curl -fsS http://127.0.0.1:8120/api/destinations/ >/dev/null" && exit 0
+              "curl -fsS http://127.0.0.1:3110/ >/dev/null && curl -fsS -H Host:safristan.com http://127.0.0.1:8120/api/destinations/ >/dev/null" && exit 0
             sleep 10
           done
           exit 1
