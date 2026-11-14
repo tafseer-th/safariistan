@@ -31,6 +31,22 @@ jobs:
             --exclude .env --exclude venv --exclude db.sqlite3 --exclude media \
             ./ "root@${{ secrets.DEPLOY_HOST }}:/opt/safaristan/"
 
+      - name: Install nginx rate limits
+        # Never fails the deploy: if nginx rejects the file it is removed again.
+        run: |
+          ssh -i ~/.ssh/id_deploy "root@${{ secrets.DEPLOY_HOST }}" '
+            set -u
+            dst=/etc/nginx/conf.d/safaristan-ratelimit.conf
+            if ! command -v nginx >/dev/null; then echo "nginx not on host, skipped"; exit 0; fi
+            install -m 644 /opt/safaristan/deploy/nginx-ratelimit.conf "$dst"
+            if nginx -t 2>/tmp/nginx-test.log; then
+              systemctl reload nginx && echo "rate limits active"
+            else
+              cat /tmp/nginx-test.log; rm -f "$dst"; nginx -t && systemctl reload nginx
+              echo "::warning::nginx rejected rate-limit config; skipped"
+            fi
+            exit 0'
+
       - name: Build and restart
         run: |
           ssh -i ~/.ssh/id_deploy "root@${{ secrets.DEPLOY_HOST }}" \

@@ -1,4 +1,5 @@
 import os
+import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -70,6 +71,24 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.getenv("SQLITE_PATH", str(BASE_DIR / "db.sqlite3")),
+        # WAL lets many gunicorn workers read while one writes; IMMEDIATE +
+        # timeout makes concurrent writes wait instead of failing "database is locked".
+        "OPTIONS": {
+            "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+            "transaction_mode": "IMMEDIATE",
+            "timeout": 20,
+        },
+    }
+}
+
+# Shared between all gunicorn workers, so rate limits count across processes
+# (the default in-memory cache would give every worker its own counter).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.getenv(
+            "DJANGO_CACHE_DIR", os.path.join(tempfile.gettempdir(), "safaristan-cache")
+        ),
     }
 }
 
@@ -102,9 +121,16 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
+    # Read endpoints are not throttled here on purpose: the Next.js server fetches
+    # them from inside Docker, so every visitor would share one IP. nginx limits
+    # public traffic per real IP instead (deploy/nginx-ratelimit.conf).
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "30/hour",
+        "anon": "30/hour",  # booking form
     },
+    # nginx is the one proxy in front of gunicorn: take the client IP it appends
+    # to X-Forwarded-For, otherwise all visitors share the Docker gateway IP and
+    # the booking limit is hit by 30 bookings site-wide per hour.
+    "NUM_PROXIES": None if DEBUG else 1,
 }
 
 CORS_ALLOWED_ORIGINS = _csv(

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ChevronDown, Menu, X, Mountain } from "lucide-react";
 
 const tourPackageLinks = [
+  { label: "All Tour Packages", href: "/tours" },
   { label: "Skardu Tour Packages", href: "/tours?destination=skardu" },
   { label: "Hunza Valley Tours Packages", href: "/tours?destination=hunza" },
   { label: "Naran Kaghan Tours Packages", href: "/tours?destination=naran-kaghan" },
