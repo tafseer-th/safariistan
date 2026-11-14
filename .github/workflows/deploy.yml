@@ -28,7 +28,7 @@ jobs:
         run: |
           rsync -az --delete -e "ssh -i ~/.ssh/id_deploy" \
             --exclude .git --exclude .github --exclude node_modules --exclude .next \
-            --exclude .env --exclude venv --exclude db.sqlite3 --exclude media \
+            --exclude .env --exclude venv --exclude db.sqlite3 --exclude media --exclude mobile \
             ./ "root@${{ secrets.DEPLOY_HOST }}:/opt/safaristan/"
 
       - name: Install nginx rate limits
