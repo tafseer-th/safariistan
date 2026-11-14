@@ -9,6 +9,7 @@ const explore = [
   { label: "Sightseeing", href: "/sightseeing" },
   { label: "Destinations", href: "/destinations" },
   { label: "Make My Trip", href: "/make-my-trip" },
+  { label: "Photo Credits", href: "/photo-credits" },
 ];
 
 const popular = [
