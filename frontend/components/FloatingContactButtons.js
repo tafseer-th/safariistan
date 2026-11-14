@@ -1,5 +1,5 @@
-import { MessageCircle, Phone } from "lucide-react";
-import { WHATSAPP_NUMBER, PHONE_NUMBER } from "@/lib/api";
+import { MessageCircle } from "lucide-react";
+import { WHATSAPP_NUMBER } from "@/lib/api";
 
 export default function FloatingContactButtons() {
   return (
@@ -12,13 +12,6 @@ export default function FloatingContactButtons() {
         className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-white shadow-lg ring-2 ring-white hover:scale-105"
       >
         <MessageCircle size={26} />
-      </a>
-      <a
-        href={`tel:${PHONE_NUMBER}`}
-        aria-label="Call us"
-        className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500 text-white shadow-lg ring-2 ring-white hover:scale-105"
-      >
-        <Phone size={22} />
       </a>
     </div>
   );
