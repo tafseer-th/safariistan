@@ -1,0 +1,16 @@
+azad-kashmir.jpg    <-    Azad Kashmir
+chitral-kalash.jpg    <-    Chitral Kalash
+fairy-meadows.jpg    <-    Fairy Meadows
+gilgit.jpg    <-    Gilgit
+hunza.jpg    <-    Hunza
+hunza-skardu.jpg    <-    Hunza Skardu
+kumrat-valley.jpg    <-    Kumrat Valley
+malam-jabba.jpg    <-    Malam Jabba
+murree.jpg    <-    Murree
+naran-kaghan.jpg    <-    Naran Kaghan
+nathia-gali.jpg    <-    Nathia Gali
+neelum-valley.jpg    <-    Neelum Valley
+ratti-gali.jpg    <-    Ratti Gali
+shogran.jpg    <-    Shogran
+skardu.jpg    <-    Skardu
+swat-kalam.jpg    <-    Swat Kalam
