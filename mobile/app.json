@@ -38,6 +38,17 @@
           "backgroundColor": "#ffffff"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "46502045-8dd8-407d-bac5-01cbf7551a8c"
+      }
+    },
+    "owner": "tafseerhqshmi"
   }
 }
